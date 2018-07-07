@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>EasyNVR</title>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" href="plugins/video-js-5.19.2/video-js.css"/>
+<script src="plugins/video-js-5.19.2/video.js"></script>
+<script src="plugins/video-js-5.19.2/videojs-contrib-hls4.js"></script>
+<script src="plugins/videojs-hotkeys/videojs.hotkeys.min.js"></script>
+<script type="text/javascript" src="plugins/jquery-3.3.1.min.js"></script>
+</head>
+
+<body>
+    <div class="content-wrapper">
+        <div class="video-wrapper" style="padding-bottom:56.25%;position:relative;margin:0 auto;">
+            <div class="video-inner" style="position:absolute;top:0;bottom:0;left:0;right:0;">
+                <video id="videojs" class="video-js vjs-default-skin vjs-big-play-centered" style="width: 100%; height: 100%;" controls preload="none"
+                    poster="" x5-video-player-fullscreen=”true”，x5-video-player-type=”h5”>
+                    <source src="" type=""></source>
+                    <p class="vjs-no-js">
+                        To view this video please enable JavaScript, and consider upgrading to a web browser that
+                        <a href="http://videojs.com/html5-video-support/" target="_blank">
+                        supports HTML5 video
+                        </a>
+                    </p>
+                </video>     
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    var $_GET = (function(){//解析传递来的参数
+        var url = window.document.location.href.toString();
+        var u = url.split("?");
+        if(typeof(u[1]) == "string"){
+            u = u[1].split("&");
+            var get = {};
+            for(var i in u){
+                var j = u[i].split("=");
+                get[j[0]] = j[1];
+            }
+            return get;
+        } else {
+            return {};
+        }
+    })();
+    videojs.options.flash.swf = 'plugins/video-js-5.19.2/video-js-fixed.swf';
+    videojs.options.techOrder = ['html5','flash'];
+    $(function(){
+        if($_GET['title']){
+            $("title").html(decodeURI($_GET['title']));
+        }
+        var VideoUrl = $_GET['url'];  
+        if(VideoUrl){
+            if(VideoUrl.indexOf("http") == 0){
+                setupPlayer(VideoUrl);
+            }else{
+                alert("当前不是HLS流");
+                setupPlayer(VideoUrl);
+            }
+        }else{
+            alert("请正确输入流地址！");
+        }
+    })
+    //截取地址栏中url的参数值  
+    // function getQueryString(name) {  
+    //     var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");  
+    //     var r = window.location.search.substr(1).match(reg);  
+    //     if (r != null)  
+    //         return unescape(r[2]);  
+    //     return null;  
+    // }  
+    function setupPlayer(videoUrl) {
+        videoUrl = videoUrl || "rtmp://121.40.50.44/live/stream_1";
+        if(videoUrl.indexOf("rtmp") == 0){
+            $("#videojs").find("source").attr("src",videoUrl).attr("type","rtmp/mp4");
+            player = videojs("videojs",{
+                notSupportedMessage : '您的浏览器没有安装或开启Flash,戳我开启！',
+                techOrder : ["flash"],
+                autoplay : true
+            });
+            videojs('videojs').ready(function() {
+              this.hotkeys({
+                volumeStep: 0.1,
+                seekStep: 5,
+                enableVolumeScroll: false,
+                enableModifiersForNumbers: false
+              });
+            });
+            player.on("error",function(e){
+                var $e = $(".vjs-error .vjs-error-display .vjs-modal-dialog-content");
+                var $a = $("<a href='http://www.adobe.com/go/getflashplayer' target='_blank'></a>").text($e.text());
+                $e.empty().append($a);
+            })                            
+        } else {
+            var timeout = 10000;
+            var step = 500;
+            var cnt = 0;
+            function test(){
+                cnt += step;
+                $.ajax(videoUrl,{
+                    type : "HEAD",
+                    global : false,
+                    complete :function(xhr,ts){
+                        if(cnt > timeout){
+                            alert("请求数据失败");
+                            return;
+                        }
+                        //xhr.status == 0 , when cross domain request not found
+                        if(xhr.status == 404 || xhr.status == 0 || (xhr.status != 200 && !isPC())){
+                            console.log("video is no ready, waiting...");
+                            setTimeout(test,step);
+                        }else{
+                            $("#videojs").find("source").attr("src", videoUrl).attr("type","application/x-mpegURL");
+                            player = videojs("videojs",{
+                                autoplay : true
+                            }); 
+                        }
+                    }
+                })
+            }
+            test();
+        }
+    }
+</script>
+</html>
