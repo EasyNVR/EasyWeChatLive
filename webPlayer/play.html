@@ -33,28 +33,15 @@
     </div>
 </body>
 <script>
-    var $_GET = (function(){//解析传递来的参数
-        var url = window.document.location.href.toString();
-        var u = url.split("?");
-        if(typeof(u[1]) == "string"){
-            u = u[1].split("&");
-            var get = {};
-            for(var i in u){
-                var j = u[i].split("=");
-                get[j[0]] = j[1];
-            }
-            return get;
-        } else {
-            return {};
-        }
-    })();
+   
     videojs.options.flash.swf = 'plugins/video-js-5.19.2/video-js-fixed.swf';
     videojs.options.techOrder = ['html5','flash'];
     $(function(){
-        if($_GET['title']){
-            $("title").html(decodeURI($_GET['title']));
+       
+        var VideoUrl = getQueryString('url')
+        if (getQueryString("title")) {
+            $("title").html(decodeURI(getQueryString("title")));
         }
-        var VideoUrl = $_GET['url'];  
         if(VideoUrl){
             if(VideoUrl.indexOf("http") == 0){
                 setupPlayer(VideoUrl);
@@ -65,14 +52,15 @@
             alert("请输入正确的的RTMP、HLS流地址！");
         }
     })
-    //截取地址栏中url的参数值  
-    // function getQueryString(name) {  
-    //     var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");  
-    //     var r = window.location.search.substr(1).match(reg);  
-    //     if (r != null)  
-    //         return unescape(r[2]);  
-    //     return null;  
-    // }  
+    截取地址栏中url的参数值  
+    function getQueryString(name) {  
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");  
+        var r = window.location.search.substr(1).match(reg);  
+        if (r != null)  
+            // return unescape(r[2]);  
+            return decodeURI(r[2]);  
+        return null;  
+    }  
     function setupPlayer(videoUrl) {
         videoUrl = videoUrl || "rtmp://121.40.50.44/live/stream_1";
         if(videoUrl.indexOf("rtmp") == 0){
