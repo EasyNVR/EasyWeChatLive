@@ -58,12 +58,11 @@
         if(VideoUrl){
             if(VideoUrl.indexOf("http") == 0){
                 setupPlayer(VideoUrl);
-            }else{
-                alert("当前不是HLS流");
+            }else if(VideoUrl.indexOf("rtmp") == 0){
                 setupPlayer(VideoUrl);
             }
         }else{
-            alert("请正确输入流地址！");
+            alert("请输入正确的的RTMP、HLS流地址！");
         }
     })
     //截取地址栏中url的参数值  
